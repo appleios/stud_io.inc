@@ -28,7 +28,7 @@
 %endmacro
 
 ; syscall_exit is the only syscall we use that has 1 parameter
-%macro _syscall_exit 1
+%macro syscall_exit 1
 	mov ebx, %1	; exit code
 	mov eax, 1	; 1 = sys_exit
 	int 0x80
@@ -50,27 +50,24 @@
 %endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-%macro 	PRINT 1
+%macro print_string 1-*
 	pusha
 	pushf
 	jmp %%astr
-%%str	db	%1, 0
-%%strln	equ	$-%%str
-%%astr:	_syscall_write 1, %%str, %%strln
-	popf
-	popa
-%endmacro
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-%macro	PUTCHAR 1
-	pusha
-	pushf
 %ifstr %1
-	mov	al, %1
+%%str ; define string
+%rep %0-1
+	%rotate 1
+	db	%1
+%endrep
+	%rotate 1
+
+	%%strln	equ	$-%%str
+%%astr:	_syscall_write 1, %%str, %%strln
+
 %elifnum %1
-	mov	al, %1
-%elifidni %1,al
-	nop
+	
 %elifidni %1,ah
 	mov	al, ah
 %elifidni %1,bl
@@ -88,37 +85,32 @@
 %else
 	mov	al, %1  ; let's hope it is a memory location such as [var]
 %endif
-	sub	esp, 2  ; reserve memory for buffer
-	mov	edi, esp
-	mov	[edi], al
-	_syscall_write 1, edi, 1
-	add	esp, 2
+
+
+
 	popf
 	popa
 %endmacro
 
+%macro print_nl 1
+	print_string 10,13
+%endmacro
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-%macro	GETCHAR 0
+%macro get_string buf, buflen
 	pushf
-	push	edi
-	sub	esp, 2
-	mov	edi, esp
-	_syscall_read 0, edi, 1
-	cmp	eax, 1
-	jne	%%eof_reached
-	xor	eax,eax
-	mov	al, [edi]
+	_syscall_read 0, buf, buflen
+	test eax, eax
+	jz	%%eof_reached
+	cmp eax, buflen
+	je	%%add_zero_at_string_end
+	inc eax
+%%add_zero_at_string_end:
+	mov byte [buf + eax], 0
 	jmp	%%gcquit
 %%eof_reached:
 	xor	eax, eax
 	not	eax 		; eax := -1
 %%gcquit:
-	add	esp, 2
-	pop	edi
 	popf
-%endmacro
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-%macro FINISH 0-1 0
-	_syscall_exit %1
 %endmacro
