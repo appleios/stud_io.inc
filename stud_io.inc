@@ -53,41 +53,31 @@
 %macro print_string 1-*
 	pusha
 	pushf
-	jmp %%astr
+	
+%ifstr %1 			; its a string
 
-%ifstr %1
-%%str ; define string
+	jmp %%astr	
+%%str 
 %rep %0-1
 	%rotate 1
 	db	%1
 %endrep
-	%rotate 1
 
 	%%strln	equ	$-%%str
-%%astr:	_syscall_write 1, %%str, %%strln
-
-%elifnum %1
+%%astr:	
+	_syscall_write 1, %%str, %%strln
 	
-%elifidni %1,ah
-	mov	al, ah
-%elifidni %1,bl
-	mov	al, bl
-%elifidni %1,bh
-	mov	al, bh
-%elifidni %1,cl
-	mov	al, cl
-%elifidni %1,ch
-	mov	al, ch
-%elifidni %1,dl
-	mov	al, dl
-%elifidni %1,dh
-	mov	al, dh
-%else
-	mov	al, %1  ; let's hope it is a memory location such as [var]
+%else 		; let's hope that it's a pointer to the string
+	xor ecx, ecx
+%%loop_for_finding_string_length:
+	mov al, [%1 + ecx]
+	test al, al
+	jz %%count_found
+	inc ecx
+	jmp %%loop_for_finding_string_length
+
+	_syscall_write 1, %1, ecx
 %endif
-
-
-
 	popf
 	popa
 %endmacro
