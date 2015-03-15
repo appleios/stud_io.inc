@@ -51,7 +51,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %macro print_string 1-*
-	pusha
+	pushad
 	pushf
 	
 %ifstr %1 			; its a string
@@ -75,11 +75,11 @@
 	jz %%count_found
 	inc ecx
 	jmp %%loop_for_finding_string_length
-
+%%count_found:
 	_syscall_write 1, %1, ecx
 %endif
 	popf
-	popa
+	popad
 %endmacro
 
 %macro print_nl 1
@@ -87,9 +87,9 @@
 %endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-%macro get_string buf, buflen
+%macro get_string 2
 	pushf
-	_syscall_read 0, buf, buflen
+	_syscall_read 0, %1, %2
 	test eax, eax
 	jz	%%eof_reached
 	cmp eax, buflen
