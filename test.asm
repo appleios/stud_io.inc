@@ -14,6 +14,6 @@ _start:
 	print_string msg
 	get_string buf, buflen
 	print_string buf
-	mov eax, buf
-	print_string eax
+	mov edx, buf
+	print_string edx
 	syscall_exit 0
