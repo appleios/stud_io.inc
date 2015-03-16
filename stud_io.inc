@@ -55,35 +55,41 @@
 	pushf
 	
 %ifstr %1 			; its a string
-
 	jmp %%astr	
 %%str 
-%rep %0-1
-	%rotate 1
+%rep %0
 	db	%1
+	%rotate 1
 %endrep
-
-	%%strln	equ	$-%%str
+%assign %%strln ($-%%str)
 %%astr:	
 	_syscall_write 1, %%str, %%strln
 	
 %else 		; let's hope that it's a pointer to the string
+	mov eax, %1
 	xor ecx, ecx
 %%loop_for_finding_string_length:
-	mov al, [%1 + ecx]
-	test al, al
+	mov bl, [eax + ecx]
+	test bl, bl
 	jz %%count_found
 	inc ecx
 	jmp %%loop_for_finding_string_length
 %%count_found:
-	_syscall_write 1, %1, ecx
+	_syscall_write 1, eax, ecx
 %endif
 	popf
 	popad
 %endmacro
 
-%macro print_nl 1
-	print_string 10,13
+%macro print_nl 0
+	pushad
+	pushfd
+	jmp %%astr
+%%str	db	10,13
+%%astr:
+	_syscall_write 1, %%str, 2
+	popad
+	popfd
 %endmacro
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

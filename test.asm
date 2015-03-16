@@ -1,4 +1,4 @@
-%include "stud_io.asm.inc"
+%include "stud_io.inc"
 
 section .bss
 buf	resb 	1024
@@ -11,9 +11,11 @@ msglen	equ	$-msg
 section .text
 global _start
 _start:
+	print_string "hello string",10,13,0
+	print_nl
 	print_string msg
 	get_string buf, buflen
 	print_string buf
-	mov edx, buf
-	print_string edx
+	mov eax, buf
+	print_string eax
 	syscall_exit 0
