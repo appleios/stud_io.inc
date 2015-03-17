@@ -98,7 +98,7 @@
 	_syscall_read 0, %1, %2
 	test eax, eax
 	jz	%%eof_reached
-	cmp eax, buflen
+	cmp eax, %2
 	je	%%add_zero_at_string_end
 	inc eax
 %%add_zero_at_string_end:
