@@ -94,7 +94,9 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 %macro get_string 2
-	pushf
+	pushfd
+	mov ebx
+	mov ebx, %1
 	_syscall_read 0, %1, %2
 	test eax, eax
 	jz	%%eof_reached
@@ -102,11 +104,12 @@
 	je	%%add_zero_at_string_end
 	inc eax
 %%add_zero_at_string_end:
-	mov byte [buf + eax], 0
+	mov byte [ebx + eax], 0
 	jmp	%%gcquit
 %%eof_reached:
 	xor	eax, eax
 	not	eax 		; eax := -1
 %%gcquit:
-	popf
+	pop ebx
+	popfd
 %endmacro
