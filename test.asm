@@ -22,7 +22,7 @@ msglen	equ	$-msg
 section .text
 global _start
 _start:
-	pcall print_binary, 135
+	pcall print_binary, 134
 	print_nl
 	syscall_exit 0
 
@@ -39,7 +39,9 @@ print_dec:
 print_binary:
 	enter 0,0
 	push eax
+	push ecx
 	mov eax, arg(1)
+	mov ecx, 32
 .lp:	shl	eax,1
 	jc	.print_one
 	print_string "0"
@@ -47,8 +49,8 @@ print_binary:
 .print_one:
 	print_string "1"
 .lp_end:
-	test eax, eax
-	jnz .lp
+	loop .lp
+	pop ecx
 	pop eax
 	leave
 	ret
